@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary -->
+    <color name="deep_blue">#FF1A237E</color>
+    <color name="amber">#FFFFA000</color>
+    <color name="amber_light">#FFFFCA28</color>
+
+    <!-- Backgrounds -->
+    <color name="dark_background">#FF0D1117</color>
+    <color name="dark_surface">#FF161B22</color>
+    <color name="dark_card">#FF1C2128</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFE6EDF3</color>
+    <color name="text_secondary">#FF8B949E</color>
+    <color name="text_tertiary">#FF484F58</color>
+
+    <!-- Semantic -->
+    <color name="success">#FF2EA043</color>
+    <color name="warning">#FFD29922</color>
+    <color name="error">#FFF85149</color>
+    <color name="info">#FF58A6FF</color>
+
+    <!-- Status bar -->
+    <color name="status_bar">#FF0D1117</color>
+</resources>
