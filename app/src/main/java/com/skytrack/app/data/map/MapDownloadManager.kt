@@ -2,11 +2,10 @@ package com.skytrack.app.data.map
 
 import android.content.Context
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -35,8 +34,11 @@ object MapDownloadManager {
         val isComplete: Boolean = false
     )
 
-    private val _state = MutableStateFlow(DownloadState())
+    internal val _state = MutableStateFlow(DownloadState())
     val state: StateFlow<DownloadState> = _state.asStateFlow()
+
+    // Application-scoped — survives activity/composable lifecycle
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * Returns the MBTiles file path if it exists and is valid.
@@ -52,10 +54,16 @@ object MapDownloadManager {
     fun isMapAvailable(context: Context): Boolean = getMbtilesFile(context) != null
 
     /**
-     * Downloads the MBTiles file from GitHub Releases.
-     * Emits progress via [state] flow.
+     * Starts the download in an app-scoped coroutine that survives backgrounding.
      */
-    suspend fun downloadMap(context: Context) {
+    fun startDownload(context: Context) {
+        scope.launch { downloadMap(context.applicationContext) }
+    }
+
+    /**
+     * Downloads the MBTiles file. Runs in background scope.
+     */
+    private suspend fun downloadMap(context: Context) {
         if (_state.value.isDownloading) return
 
         _state.value = DownloadState(isDownloading = true)

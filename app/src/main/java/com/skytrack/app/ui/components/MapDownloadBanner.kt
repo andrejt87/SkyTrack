@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.skytrack.app.data.map.MapDownloadManager
+import com.skytrack.app.data.map.MapDownloadService
 import com.skytrack.app.data.map.NetworkMonitor
 import com.skytrack.app.ui.theme.*
 import kotlinx.coroutines.launch
@@ -98,7 +99,7 @@ fun MapDownloadBanner(modifier: Modifier = Modifier) {
                 downloadState.error != null -> {
                     Text(downloadState.error ?: "", style = MaterialTheme.typography.labelSmall.copy(color = Error))
                     Button(
-                        onClick = { scope.launch { MapDownloadManager.downloadMap(context) } },
+                        onClick = { MapDownloadService.start(context) },
                         colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
                     ) { Text("Retry", style = MaterialTheme.typography.labelMedium) }
@@ -109,7 +110,7 @@ fun MapDownloadBanner(modifier: Modifier = Modifier) {
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                     Button(
-                        onClick = { scope.launch { MapDownloadManager.downloadMap(context) } },
+                        onClick = { MapDownloadService.start(context) },
                         colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
                     ) {
