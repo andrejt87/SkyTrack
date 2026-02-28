@@ -46,46 +46,27 @@ fun ProgressHero(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Arc + plane + percentage
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(240.dp)
+        // Percentage + linear bar (compact)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ArcProgressIndicator(
-                progress = animatedProgress / 100f,
-                modifier = Modifier.fillMaxSize()
+            Text(
+                text = "${animatedProgress.toInt()}%",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = ProgressGold,
+                    fontWeight = FontWeight.Bold
+                )
             )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                AnimatedCounter(
-                    value = animatedProgress.toInt(),
-                    suffix = "%",
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        color = ProgressGold,
-                        fontWeight = FontWeight.Black
-                    )
-                )
-                Text(
-                    text = "COMPLETE",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TextTertiary,
-                        letterSpacing = 3.sp
-                    )
-                )
-            }
+            LinearProgressBar(
+                progress = animatedProgress / 100f,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(28.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Linear progress bar with plane icon
-        LinearProgressBar(
-            progress = animatedProgress / 100f,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .padding(horizontal = 16.dp)
-        )
     }
 }
 

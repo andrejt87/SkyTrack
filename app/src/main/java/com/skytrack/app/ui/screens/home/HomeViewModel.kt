@@ -222,8 +222,9 @@ class HomeViewModel @Inject constructor(
     private fun stopTrackingInternal() {
         trackingJob?.cancel()
         trackingJob = null
-        locationRepository.stopTracking()
-        _uiState.update { it.copy(isTracking = false, progress = FlightProgress(), elapsedMs = 0L) }
+        // Don't reset progress — keep last GPS values so idle UI still shows position/speed/alt
+        // Don't call stopTracking — passive location collector continues
+        _uiState.update { it.copy(isTracking = false, elapsedMs = 0L) }
     }
 
     fun completeFlight(onComplete: () -> Unit = {}) {
@@ -261,20 +262,26 @@ class HomeViewModel @Inject constructor(
     fun setDepartureOnActiveFlight(airport: Airport) {
         viewModelScope.launch {
             val flight = _uiState.value.activeFlight ?: return@launch
-            flightRepository.updateFlight(
-                flight.copy(
-                    departureIata = airport.iata,
-                    departureName = airport.name,
-                    departureLat = airport.lat,
-                    departureLon = airport.lon,
-                    departureTz = airport.tz
+            val updatedFlight = flight.copy(
+                departureIata = airport.iata,
+                departureName = airport.name,
+                departureLat = airport.lat,
+                departureLon = airport.lon,
+                departureTz = airport.tz,
+                totalDistanceKm = FlightCalculator.haversineDistance(
+                    airport.lat, airport.lon, flight.arrivalLat, flight.arrivalLon
                 )
             )
+            flightRepository.updateFlight(updatedFlight)
+            // Restart tracking with new departure coordinates
+            trackingJob?.cancel()
+            trackingJob = null
+            startTracking(updatedFlight)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        locationRepository.stopTracking()
+        trackingJob?.cancel()
     }
 }

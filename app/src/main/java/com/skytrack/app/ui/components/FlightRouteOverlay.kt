@@ -12,6 +12,7 @@ import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import com.skytrack.app.domain.FlightCalculator
+import com.skytrack.app.data.map.NetworkMonitor
 import com.skytrack.app.data.map.OfflineTileProvider
 
 /**
@@ -30,17 +31,13 @@ fun FlightRouteOverlay(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isOnline by NetworkMonitor.isOnline.collectAsState()
 
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
             MapView(ctx).apply {
-                // Configure offline MBTiles provider; falls back gracefully
-                val offlineAvailable = OfflineTileProvider.configureOfflineMap(this, ctx)
-                if (!offlineAvailable) {
-                    setTileSource(TileSourceFactory.MAPNIK)
-                    setUseDataConnection(true)
-                }
+                OfflineTileProvider.configureMap(this, ctx)
                 setMultiTouchControls(false)
                 isClickable = false
                 isFocusable = false
@@ -55,6 +52,8 @@ fun FlightRouteOverlay(
             }
         },
         update = { mapView ->
+            // Reconfigure tile source on connectivity change
+            OfflineTileProvider.configureMap(mapView, context)
             mapView.overlays.clear()
 
             val departure = GeoPoint(departureLat, departureLon)

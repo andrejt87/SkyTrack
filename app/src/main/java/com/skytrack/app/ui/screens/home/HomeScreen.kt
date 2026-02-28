@@ -67,14 +67,6 @@ fun HomeScreen(
                     colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary, indicatorColor = DarkSurface2)
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { flightId?.let { onStatsClick(it) } },
-                    enabled = flightId != null,
-                    icon = { Icon(Icons.Default.BarChart, null) },
-                    label = { Text("Stats") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = if (flightId != null) TextSecondary else TextTertiary, unselectedTextColor = if (flightId != null) TextSecondary else TextTertiary, indicatorColor = DarkSurface2)
-                )
-                NavigationBarItem(
                     selected = false, onClick = onHistoryClick,
                     icon = { Icon(Icons.Default.History, null) },
                     label = { Text("History") },
@@ -102,102 +94,119 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ─── Header ───────────────────────────────────────────────────────
+            // ─── Fixed-height top section (header + setup/progress) ─────────
             Box(
-                modifier = Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(DeepBlue, DarkBackground)))
-                    .padding(top = 48.dp, bottom = 16.dp, start = 20.dp, end = 20.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+                    .background(Brush.verticalGradient(listOf(DeepBlue, DarkBackground)))
             ) {
-                if (hasData) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 8.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // ─── Header row (always same height) ──────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column {
-                            Text(flight!!.routeLabel, style = MaterialTheme.typography.headlineSmall.copy(color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 3.sp))
-                            Text(formatElapsed(uiState.elapsedMs), style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary, letterSpacing = 1.sp))
-                        }
-                        Button(
-                            onClick = { showCompleteDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Error, contentColor = TextPrimary),
-                            shape = MaterialTheme.shapes.medium,
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Icon(Icons.Default.Stop, null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("STOP", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp))
-                        }
-                    }
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Text("SKYTRACK", style = MaterialTheme.typography.headlineMedium.copy(color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp))
-                    }
-                }
-            }
-
-            // ─── Central slot: Setup OR Progress ──────────────────────────────
-            if (hasData) {
-                // Add departure chip (if no departure set)
-                if (!flight!!.hasDeparture) {
-                    OutlinedButton(
-                        onClick = onAddDepartureToFlight,
-                        border = BorderStroke(1.dp, TextTertiary),
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Icon(Icons.Default.Add, null, tint = TextSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Departure", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-                ProgressHero(
-                    departureIata = flight.departureIata, arrivalIata = flight.arrivalIata,
-                    progressPercent = progress.smoothedProgressPercent,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                )
-            } else {
-                Column(modifier = Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    AirportSearchField(
-                        selectedAirport = uiState.arrival,
-                        placeholder = "Select destination",
-                        icon = Icons.Default.FlightLand,
-                        onClick = onSelectArrival,
-                        onClear = viewModel::clearArrival,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (uiState.departure != null) {
-                        AirportSearchField(
-                            selectedAirport = uiState.departure,
-                            placeholder = "Departure",
-                            icon = Icons.Default.FlightTakeoff,
-                            onClick = onSelectDeparture,
-                            onClear = viewModel::clearDeparture,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    } else {
-                        OutlinedButton(
-                            onClick = onSelectDeparture,
-                            border = BorderStroke(1.dp, TextTertiary),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Icon(Icons.Default.Add, null, tint = TextSecondary, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Departure", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                    Button(
-                        onClick = viewModel::startFlight,
-                        enabled = uiState.canStart && !uiState.isLoading,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber, disabledContainerColor = DarkSurface3, disabledContentColor = TextTertiary),
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(color = DarkBackground, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                        if (hasData) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(flight!!.routeLabel, style = MaterialTheme.typography.headlineSmall.copy(color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 3.sp))
+                                    GpsSignalIndicator(accuracyM = progress.gpsAccuracyM)
+                                }
+                                Text(formatElapsed(uiState.elapsedMs), style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary, letterSpacing = 1.sp))
+                            }
                         } else {
-                            Icon(Icons.Default.FlightTakeoff, null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("START TRACKING", style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold))
+                            Text("SKYTRACK", style = MaterialTheme.typography.headlineMedium.copy(color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp))
+                        }
+                        if (hasData) {
+                            Button(
+                                onClick = { showCompleteDialog = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = Error, contentColor = TextPrimary),
+                                shape = MaterialTheme.shapes.medium,
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Icon(Icons.Default.Stop, null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("STOP", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp))
+                            }
+                        } else {
+                            GpsSignalIndicator(accuracyM = progress.gpsAccuracyM)
+                        }
+                    }
+
+                    // ─── Central slot (setup OR progress) ─────────────────────
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        if (hasData) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (!flight!!.hasDeparture) {
+                                    OutlinedButton(
+                                        onClick = onAddDepartureToFlight,
+                                        border = BorderStroke(1.dp, TextTertiary),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Departure", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                                ProgressHero(
+                                    departureIata = flight.departureIata, arrivalIata = flight.arrivalIata,
+                                    progressPercent = progress.smoothedProgressPercent,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                AirportSearchField(
+                                    selectedAirport = uiState.arrival,
+                                    placeholder = "Select destination",
+                                    icon = Icons.Default.FlightLand,
+                                    onClick = onSelectArrival,
+                                    onClear = viewModel::clearArrival,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                if (uiState.departure != null) {
+                                    AirportSearchField(
+                                        selectedAirport = uiState.departure,
+                                        placeholder = "Departure",
+                                        icon = Icons.Default.FlightTakeoff,
+                                        onClick = onSelectDeparture,
+                                        onClear = viewModel::clearDeparture,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                } else {
+                                    OutlinedButton(
+                                        onClick = onSelectDeparture,
+                                        border = BorderStroke(1.dp, TextTertiary),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Departure", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                                Button(
+                                    onClick = viewModel::startFlight,
+                                    enabled = uiState.canStart && !uiState.isLoading,
+                                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber, disabledContainerColor = DarkSurface3, disabledContentColor = TextTertiary),
+                                    shape = MaterialTheme.shapes.large
+                                ) {
+                                    if (uiState.isLoading) {
+                                        CircularProgressIndicator(color = DarkBackground, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                                    } else {
+                                        Icon(Icons.Default.FlightTakeoff, null)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("START TRACKING", style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -226,6 +235,9 @@ fun HomeScreen(
                     )
                 }
             }
+
+            // ─── Offline map download banner ──────────────────────────────────
+            MapDownloadBanner(modifier = Modifier.padding(horizontal = 20.dp))
 
             // ─── Metrics (always visible) ─────────────────────────────────────
             val hasGps = progress.currentLat != 0.0

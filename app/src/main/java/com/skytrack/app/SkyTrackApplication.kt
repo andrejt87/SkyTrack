@@ -23,6 +23,9 @@ class SkyTrackApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // Initialize network monitor
+        com.skytrack.app.data.map.NetworkMonitor.init(applicationContext)
+
         // Configure OSMDroid
         Configuration.getInstance().apply {
             load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))

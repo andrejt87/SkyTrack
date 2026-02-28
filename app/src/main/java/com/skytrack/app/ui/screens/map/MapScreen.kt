@@ -21,6 +21,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
+import com.skytrack.app.data.map.NetworkMonitor
 import com.skytrack.app.data.map.OfflineTileProvider
 
 @Composable
@@ -32,6 +33,7 @@ fun MapScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val flight   = uiState.flight
     val progress = uiState.progress
+    val isOnline by NetworkMonitor.isOnline.collectAsState()
 
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
     var isFollowingPlane by remember { mutableStateOf(true) }
@@ -79,12 +81,7 @@ fun MapScreen(
                     MapView(ctx).also { mv ->
                         mapViewRef = mv
                         // Configure offline MBTiles provider; falls back gracefully
-                        val offlineAvailable = OfflineTileProvider.configureOfflineMap(mv, ctx)
-                        if (!offlineAvailable) {
-                            // Fallback: online tiles (cached when available)
-                            mv.setTileSource(TileSourceFactory.MAPNIK)
-                            mv.setUseDataConnection(true)
-                        }
+                        OfflineTileProvider.configureMap(mv, ctx)
                         mv.setMultiTouchControls(true)
                         val rotGesture = RotationGestureOverlay(mv)
                         rotGesture.isEnabled = true
@@ -93,6 +90,7 @@ fun MapScreen(
                     }
                 },
                 update = { mapView ->
+                    OfflineTileProvider.configureMap(mapView, mapView.context)
                     mapView.overlays.clear()
 
                     // No flight — just show current position

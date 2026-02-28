@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skytrack.app.ui.theme.*
-import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
@@ -26,6 +25,7 @@ fun SplashScreen(
     viewModel: SplashViewModel = hiltViewModel()
 ) {
     val activeFlightId by viewModel.activeFlightId.collectAsStateWithLifecycle()
+    val gpsReady by viewModel.gpsReady.collectAsStateWithLifecycle()
 
     val infiniteTransition = rememberInfiniteTransition(label = "plane")
     val planeRotation by infiniteTransition.animateFloat(
@@ -47,19 +47,21 @@ fun SplashScreen(
         label = "translateX"
     )
 
-    val alpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(800, easing = EaseInOut),
-        label = "alpha"
-    )
+    // Navigate once GPS is ready (or after 10s timeout as fallback)
+    var timedOut by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(10_000)
+        timedOut = true
+    }
 
-    LaunchedEffect(activeFlightId) {
-        delay(2000)
-        val id = activeFlightId
-        if (id != null && id > 0) {
-            onActiveFlight(id)
-        } else {
-            onSplashComplete()
+    LaunchedEffect(gpsReady, timedOut) {
+        if (gpsReady || timedOut) {
+            val id = activeFlightId
+            if (id != null && id > 0) {
+                onActiveFlight(id)
+            } else {
+                onSplashComplete()
+            }
         }
     }
 
@@ -101,11 +103,17 @@ fun SplashScreen(
                     letterSpacing = 2.sp
                 )
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             CircularProgressIndicator(
                 color = Amber,
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = if (!gpsReady) "Acquiring GPS…" else "Ready",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TextSecondary
+                )
             )
         }
     }

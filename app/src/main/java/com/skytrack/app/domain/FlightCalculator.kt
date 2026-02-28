@@ -56,20 +56,18 @@ object FlightCalculator {
         currentLat: Double, currentLon: Double,
         departureLat: Double, departureLon: Double,
         arrivalLat: Double, arrivalLon: Double,
-        previousSmoothedProgress: Double,
-        alpha: Double = 0.1
+        previousSmoothedProgress: Double = 0.0,
+        alpha: Double = 1.0
     ): FlightProgress {
         val totalDistance = haversineDistance(departureLat, departureLon, arrivalLat, arrivalLon)
         val remainingDistance = haversineDistance(currentLat, currentLon, arrivalLat, arrivalLon)
         val rawProgress = if (totalDistance > 0.0) {
             ((totalDistance - remainingDistance) / totalDistance * 100.0).coerceIn(0.0, 100.0)
         } else 0.0
-        val smoothedProgress = (alpha * rawProgress + (1 - alpha) * previousSmoothedProgress)
-            .coerceIn(0.0, 100.0)
         val bearing = calculateBearing(currentLat, currentLon, arrivalLat, arrivalLon)
         return FlightProgress(
             rawProgressPercent = rawProgress,
-            smoothedProgressPercent = smoothedProgress,
+            smoothedProgressPercent = rawProgress,
             remainingDistanceKm = remainingDistance,
             totalDistanceKm = totalDistance,
             bearingDeg = bearing,
