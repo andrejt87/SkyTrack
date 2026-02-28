@@ -1,0 +1,281 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.skytrack.app.debug"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Location permissions -->
+12    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+12-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:5:5-79
+12-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:5:22-76
+13    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+13-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:6:5-81
+13-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:6:22-78
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:7:5-77
+14-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:7:22-74
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+15-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:8:5-86
+15-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:8:22-83
+16
+17    <!-- Internet for optional tile updates (mostly offline) -->
+18    <uses-permission android:name="android.permission.INTERNET" />
+18-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:11:5-67
+18-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:11:22-64
+19    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+19-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:12:5-79
+19-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:12:22-76
+20
+21    <!-- Storage for OSMDroid tile cache -->
+22    <uses-permission
+22-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:15:5-16:38
+23        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+23-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:15:22-78
+24        android:maxSdkVersion="28" />
+24-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:16:9-35
+25    <uses-permission
+25-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:17:5-18:38
+26        android:name="android.permission.READ_EXTERNAL_STORAGE"
+26-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:17:22-77
+27        android:maxSdkVersion="32" />
+27-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:18:9-35
+28
+29    <!-- Sensors -->
+30    <uses-feature
+30-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:21:5-23:36
+31        android:name="android.hardware.sensor.barometer"
+31-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:22:9-57
+32        android:required="false" />
+32-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:23:9-33
+33    <uses-feature
+33-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:24:5-26:36
+34        android:name="android.hardware.location.gps"
+34-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:25:9-53
+35        android:required="false" />
+35-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:26:9-33
+36
+37    <permission
+37-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+38        android:name="com.skytrack.app.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+38-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+39        android:protectionLevel="signature" />
+39-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+40
+41    <uses-permission android:name="com.skytrack.app.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+41-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+41-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+42
+43    <supports-screens
+43-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:9:5-12:40
+44        android:anyDensity="true"
+44-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:10:9-34
+45        android:largeScreens="true"
+45-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:11:9-36
+46        android:normalScreens="true" />
+46-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:12:9-37
+47
+48    <uses-feature
+48-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:14:5-16:36
+49        android:name="android.hardware.location.network"
+49-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:15:9-57
+50        android:required="false" />
+50-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:16:9-33
+51    <uses-feature
+51-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:20:5-22:36
+52        android:name="android.hardware.telephony"
+52-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:21:9-50
+53        android:required="false" />
+53-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:22:9-33
+54    <uses-feature
+54-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:23:5-25:36
+55        android:name="android.hardware.wifi"
+55-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:24:9-45
+56        android:required="false" />
+56-->[org.osmdroid:osmdroid-android:6.1.18] /Users/andrej/.gradle/caches/8.10/transforms/017c14637f6c9bc7a29d82ddc0441a30/transformed/osmdroid-android-6.1.18/AndroidManifest.xml:25:9-33
+57
+58    <application
+58-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:28:5-68:19
+59        android:name="com.skytrack.app.SkyTrackApplication"
+59-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:29:9-44
+60        android:allowBackup="true"
+60-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:30:9-35
+61        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+61-->[androidx.core:core:1.12.0] /Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+62        android:debuggable="true"
+63        android:extractNativeLibs="false"
+64        android:hardwareAccelerated="true"
+64-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:36:9-43
+65        android:icon="@mipmap/ic_launcher"
+65-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:31:9-43
+66        android:label="@string/app_name"
+66-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:32:9-41
+67        android:largeHeap="true"
+67-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:37:9-33
+68        android:roundIcon="@mipmap/ic_launcher_round"
+68-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:33:9-54
+69        android:supportsRtl="true"
+69-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:34:9-35
+70        android:theme="@style/Theme.SkyTrack" >
+70-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:35:9-46
+71        <activity
+71-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:39:9-49:20
+72            android:name="com.skytrack.app.MainActivity"
+72-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:40:13-41
+73            android:exported="true"
+73-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:41:13-36
+74            android:screenOrientation="portrait"
+74-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:44:13-49
+75            android:theme="@style/Theme.SkyTrack"
+75-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:42:13-50
+76            android:windowSoftInputMode="adjustResize" >
+76-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:43:13-55
+77            <intent-filter>
+77-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:45:13-48:29
+78                <action android:name="android.intent.action.MAIN" />
+78-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:46:17-69
+78-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:46:25-66
+79
+80                <category android:name="android.intent.category.LAUNCHER" />
+80-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:47:17-77
+80-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:47:27-74
+81            </intent-filter>
+82        </activity>
+83
+84        <service
+84-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:51:9-55:56
+85            android:name="com.skytrack.app.service.FlightTrackingService"
+85-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:52:13-58
+86            android:enabled="true"
+86-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:53:13-35
+87            android:exported="false"
+87-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:54:13-37
+88            android:foregroundServiceType="location" />
+88-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:55:13-53
+89
+90        <!-- OSMDroid configuration provider -->
+91        <provider
+92            android:name="androidx.core.content.FileProvider"
+92-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:59:13-62
+93            android:authorities="com.skytrack.app.debug.fileprovider"
+93-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:60:13-64
+94            android:exported="false"
+94-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:61:13-37
+95            android:grantUriPermissions="true" >
+95-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:62:13-47
+96            <meta-data
+96-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:63:13-65:54
+97                android:name="android.support.FILE_PROVIDER_PATHS"
+97-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:64:17-67
+98                android:resource="@xml/file_paths" />
+98-->/Users/andrej/.openclaw/workspace/SkyTrack/app/src/main/AndroidManifest.xml:65:17-51
+99        </provider>
+100
+101        <activity
+101-->[com.google.android.gms:play-services-base:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/8c6259bbb2ead5d02529ecd7f7acc84d/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:9-22:45
+102            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+102-->[com.google.android.gms:play-services-base:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/8c6259bbb2ead5d02529ecd7f7acc84d/transformed/play-services-base-18.1.0/AndroidManifest.xml:20:19-85
+103            android:exported="false"
+103-->[com.google.android.gms:play-services-base:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/8c6259bbb2ead5d02529ecd7f7acc84d/transformed/play-services-base-18.1.0/AndroidManifest.xml:22:19-43
+104            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+104-->[com.google.android.gms:play-services-base:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/8c6259bbb2ead5d02529ecd7f7acc84d/transformed/play-services-base-18.1.0/AndroidManifest.xml:21:19-78
+105        <activity
+105-->[androidx.compose.ui:ui-tooling-android:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/b2ab14c16989155c0f82938332359b51/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+106            android:name="androidx.compose.ui.tooling.PreviewActivity"
+106-->[androidx.compose.ui:ui-tooling-android:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/b2ab14c16989155c0f82938332359b51/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+107            android:exported="true" />
+107-->[androidx.compose.ui:ui-tooling-android:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/b2ab14c16989155c0f82938332359b51/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+108        <activity
+108-->[androidx.compose.ui:ui-test-manifest:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/210fe9ef173669649c167374446394cf/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:23:9-25:39
+109            android:name="androidx.activity.ComponentActivity"
+109-->[androidx.compose.ui:ui-test-manifest:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/210fe9ef173669649c167374446394cf/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:24:13-63
+110            android:exported="true" />
+110-->[androidx.compose.ui:ui-test-manifest:1.6.1] /Users/andrej/.gradle/caches/8.10/transforms/210fe9ef173669649c167374446394cf/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:25:13-36
+111
+112        <provider
+112-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+113            android:name="androidx.startup.InitializationProvider"
+113-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+114            android:authorities="com.skytrack.app.debug.androidx-startup"
+114-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+115            android:exported="false" >
+115-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+116            <meta-data
+116-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+117                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+117-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+118                android:value="androidx.startup" />
+118-->[androidx.emoji2:emoji2:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/488c354aa584a40a2901e843069d6b41/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+119            <meta-data
+119-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/andrej/.gradle/caches/8.10/transforms/0afdf49a32127613bb77f3ddf2fe4427/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+120                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+120-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/andrej/.gradle/caches/8.10/transforms/0afdf49a32127613bb77f3ddf2fe4427/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+121                android:value="androidx.startup" />
+121-->[androidx.lifecycle:lifecycle-process:2.7.0] /Users/andrej/.gradle/caches/8.10/transforms/0afdf49a32127613bb77f3ddf2fe4427/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+122            <meta-data
+122-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+123                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+123-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+124                android:value="androidx.startup" />
+124-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+125        </provider>
+126
+127        <service
+127-->[androidx.room:room-runtime:2.6.1] /Users/andrej/.gradle/caches/8.10/transforms/5d5a58bcd84d79cbdcb8c75b1afc4354/transformed/room-runtime-2.6.1/AndroidManifest.xml:24:9-28:63
+128            android:name="androidx.room.MultiInstanceInvalidationService"
+128-->[androidx.room:room-runtime:2.6.1] /Users/andrej/.gradle/caches/8.10/transforms/5d5a58bcd84d79cbdcb8c75b1afc4354/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
+129            android:directBootAware="true"
+129-->[androidx.room:room-runtime:2.6.1] /Users/andrej/.gradle/caches/8.10/transforms/5d5a58bcd84d79cbdcb8c75b1afc4354/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
+130            android:exported="false" />
+130-->[androidx.room:room-runtime:2.6.1] /Users/andrej/.gradle/caches/8.10/transforms/5d5a58bcd84d79cbdcb8c75b1afc4354/transformed/room-runtime-2.6.1/AndroidManifest.xml:27:13-37
+131
+132        <meta-data
+132-->[com.google.android.gms:play-services-basement:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/945e95c0e87c4e4d5385824ccd5f6b32/transformed/play-services-basement-18.1.0/AndroidManifest.xml:21:9-23:69
+133            android:name="com.google.android.gms.version"
+133-->[com.google.android.gms:play-services-basement:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/945e95c0e87c4e4d5385824ccd5f6b32/transformed/play-services-basement-18.1.0/AndroidManifest.xml:22:13-58
+134            android:value="@integer/google_play_services_version" />
+134-->[com.google.android.gms:play-services-basement:18.1.0] /Users/andrej/.gradle/caches/8.10/transforms/945e95c0e87c4e4d5385824ccd5f6b32/transformed/play-services-basement-18.1.0/AndroidManifest.xml:23:13-66
+135
+136        <receiver
+136-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+137            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+137-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+138            android:directBootAware="false"
+138-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+139            android:enabled="true"
+139-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+140            android:exported="true"
+140-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+141            android:permission="android.permission.DUMP" >
+141-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+142            <intent-filter>
+142-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+143                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+143-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+143-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+144            </intent-filter>
+145            <intent-filter>
+145-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+146                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+146-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+146-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+147            </intent-filter>
+148            <intent-filter>
+148-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+149                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+149-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+149-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+150            </intent-filter>
+151            <intent-filter>
+151-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+152                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+152-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+152-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/andrej/.gradle/caches/8.10/transforms/8dbaeae453865c4422f03722942b0659/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+153            </intent-filter>
+154        </receiver>
+155    </application>
+156
+157</manifest>

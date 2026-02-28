@@ -54,8 +54,12 @@ fun FlightSetupScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "New Flight",
-                        style = MaterialTheme.typography.titleLarge.copy(color = TextPrimary)
+                        text = "SKYTRACK",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 3.sp
+                        )
                     )
                 },
                 actions = {
@@ -183,33 +187,6 @@ fun FlightSetupScreen(
                     }
                 }
             }
-
-            // Flight number (optional)
-            OutlinedTextField(
-                value = uiState.flightNumber,
-                onValueChange = viewModel::setFlightNumber,
-                label = {
-                    Text("Flight Number (optional)", color = TextTertiary)
-                },
-                placeholder = {
-                    Text("e.g. LH401", color = TextTertiary)
-                },
-                leadingIcon = {
-                    Icon(Icons.Default.ConfirmationNumber, null, tint = TextSecondary)
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Amber,
-                    unfocusedBorderColor = DarkDivider,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    cursorColor = Amber,
-                    focusedContainerColor = DarkSurface2,
-                    unfocusedContainerColor = DarkSurface2
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

@@ -19,7 +19,6 @@ import javax.inject.Inject
 data class SetupUiState(
     val departure: Airport? = null,
     val arrival: Airport? = null,
-    val flightNumber: String = "",
     val isLoading: Boolean = false,
     val canStart: Boolean = false,
     val routeDistanceKm: Double = 0.0,
@@ -50,7 +49,6 @@ class FlightSetupViewModel @Inject constructor(
                 SetupUiState(
                     departure = dep,
                     arrival = arr,
-                    flightNumber = _uiState.value.flightNumber,
                     canStart = arr != null && (dep == null || dep.iata != arr.iata),
                     routeDistanceKm = distance
                 )
@@ -72,10 +70,6 @@ class FlightSetupViewModel @Inject constructor(
 
     fun clearArrival() {
         _selectedArrival.value = null
-    }
-
-    fun setFlightNumber(number: String) {
-        _uiState.update { it.copy(flightNumber = number.take(10)) }
     }
 
     fun swapAirports() {
@@ -127,7 +121,6 @@ class FlightSetupViewModel @Inject constructor(
                 arrivalLat    = arr.lat,
                 arrivalLon    = arr.lon,
                 arrivalTz     = arr.tz,
-                flightNumber  = state.flightNumber,
                 status        = FlightStatus.AIRBORNE,
                 actualDepartureMs = System.currentTimeMillis(),
                 totalDistanceKm   = state.routeDistanceKm

@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.skytrack.app-mergeDebugResources-62:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "/Users/andrej/.gradle/caches/8.10/transforms/9807b6b4d6fe78a98d6b9d7b83ccc1a8/transformed/core-1.12.0/res/values-v16/values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "65",
+                        "endOffsets": "116"
+                    }
+                }
+            ]
+        }
+    ]
+}

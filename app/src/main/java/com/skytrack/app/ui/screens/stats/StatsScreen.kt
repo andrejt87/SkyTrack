@@ -85,12 +85,6 @@ fun StatsScreen(
                             letterSpacing = 3.sp
                         )
                     )
-                    if (flight.flightNumber.isNotBlank()) {
-                        Text(
-                            text = "Flight ${flight.flightNumber}",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
-                        )
-                    }
                     Text(
                         text = formatDate(flight.actualDepartureMs.takeIf { it > 0 } ?: flight.createdAtMs),
                         style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary)

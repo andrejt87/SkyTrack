@@ -41,7 +41,7 @@ fun MapScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = flight?.routeLabel ?: "Map",
+                        text = flight?.routeLabel ?: "Current Location",
                         color = TextPrimary
                     )
                 },
@@ -93,8 +93,23 @@ fun MapScreen(
                     }
                 },
                 update = { mapView ->
-                    if (flight == null) return@AndroidView
                     mapView.overlays.clear()
+
+                    // No flight — just show current position
+                    if (flight == null) {
+                        if (progress.currentLat != 0.0) {
+                            val curMarker = Marker(mapView).apply {
+                                position = GeoPoint(progress.currentLat, progress.currentLon)
+                                title = "Current Position"
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            }
+                            mapView.overlays.add(curMarker)
+                            mapView.controller.animateTo(GeoPoint(progress.currentLat, progress.currentLon))
+                            mapView.controller.setZoom(12.0)
+                        }
+                        mapView.invalidate()
+                        return@AndroidView
+                    }
 
                     // Route polyline (great circle)
                     val routePoints = FlightCalculator.greatCirclePoints(
@@ -135,13 +150,20 @@ fun MapScreen(
                         mapView.overlays.add(coveredPolyline)
                     }
 
-                    // Departure marker
-                    val depMarker = Marker(mapView).apply {
-                        position = GeoPoint(flight.departureLat, flight.departureLon)
-                        title    = "${flight.departureIata} – ${flight.departureName}"
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    // Departure marker (hide when current position is nearby to avoid double pin)
+                    val depNearCurrent = progress.currentLat != 0.0 &&
+                        FlightCalculator.haversineDistance(
+                            flight.departureLat, flight.departureLon,
+                            progress.currentLat, progress.currentLon
+                        ) < 5.0 // less than 5 km apart
+                    if (!depNearCurrent && flight.hasDeparture) {
+                        val depMarker = Marker(mapView).apply {
+                            position = GeoPoint(flight.departureLat, flight.departureLon)
+                            title    = "${flight.departureIata} – ${flight.departureName}"
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        }
+                        mapView.overlays.add(depMarker)
                     }
-                    mapView.overlays.add(depMarker)
 
                     // Arrival marker
                     val arrMarker = Marker(mapView).apply {
@@ -156,7 +178,7 @@ fun MapScreen(
                         val curMarker = Marker(mapView).apply {
                             position = GeoPoint(progress.currentLat, progress.currentLon)
                             title    = "✈ ${progress.speedFormatted} · ${progress.altitudeFormatted}"
-                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         }
                         mapView.overlays.add(curMarker)
 

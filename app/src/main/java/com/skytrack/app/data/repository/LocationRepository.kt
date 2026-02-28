@@ -43,6 +43,10 @@ class LocationRepository @Inject constructor(
     ): Flow<FlightProgress> {
         var smoothedProgress = 0.0
         return locationProvider.locationFlow.map { loc ->
+            val rawSpeedKmh = (loc.speed * 3.6f).toDouble()
+            // Suppress GPS drift noise: speeds below 10 km/h are treated as stationary
+            val speedKmh = if (rawSpeedKmh < 10.0) 0.0 else rawSpeedKmh
+
             val progress = FlightCalculator.calculateProgress(
                 currentLat = loc.latitude,
                 currentLon = loc.longitude,
@@ -55,11 +59,11 @@ class LocationRepository @Inject constructor(
             )
             val eta = FlightCalculator.calculateETA(
                 remainingDistanceKm = progress.remainingDistanceKm,
-                speedKmh = (loc.speed * 3.6f).toDouble()
+                speedKmh = speedKmh
             )
             smoothedProgress = progress.smoothedProgressPercent
             progress.copy(
-                groundSpeedKmh = (loc.speed * 3.6f).toDouble(),
+                groundSpeedKmh = speedKmh,
                 altitudeM = loc.altitude,
                 gpsAccuracyM = loc.accuracy,
                 currentLat = loc.latitude,

@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,7 @@ fun DashboardScreen(
     onHistoryClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onFlightComplete: () -> Unit,
+    onAddDeparture: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -116,15 +118,6 @@ fun DashboardScreen(
                                 letterSpacing = 4.sp
                             )
                         )
-                        if (flight.flightNumber.isNotBlank()) {
-                            Text(
-                                text = flight.flightNumber,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = TextSecondary,
-                                    letterSpacing = 2.sp
-                                )
-                            )
-                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = formatElapsed(uiState.elapsedMs),
@@ -141,6 +134,36 @@ fun DashboardScreen(
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Icon(Icons.Default.Stop, "End flight", tint = Error)
+                }
+            }
+
+            // ─── "Where are you flying from?" banner if no departure ──────────
+            if (flight != null && !flight.hasDeparture) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    colors = CardDefaults.cardColors(containerColor = DarkSurface2),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "Where are you flying from?",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = TextSecondary)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onAddDeparture,
+                            border = BorderStroke(1.dp, Amber)
+                        ) {
+                            Icon(Icons.Default.FlightTakeoff, null, tint = Amber, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Add Departure (optional)", color = Amber)
+                        }
+                    }
                 }
             }
 
@@ -257,7 +280,7 @@ fun DashboardScreen(
         }
     }
 
-    // Complete flight dialog
+    // End flight dialog with 3 options
     if (showCompleteDialog) {
         AlertDialog(
             onDismissRequest = { showCompleteDialog = false },
@@ -267,25 +290,56 @@ fun DashboardScreen(
                 Text("End Flight?", color = TextPrimary)
             },
             text = {
-                Text(
-                    "Mark this flight as completed and stop tracking?",
-                    color = TextSecondary
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showCompleteDialog = false
-                        viewModel.completeFlight(onFlightComplete)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber)
-                ) {
-                    Text("Complete Flight")
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Complete flight
+                    Button(
+                        onClick = {
+                            showCompleteDialog = false
+                            viewModel.completeFlight(onFlightComplete)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Amber, contentColor = TextOnAmber)
+                    ) {
+                        Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Complete Flight")
+                    }
+                    // Abort flight (keep in history as incomplete)
+                    OutlinedButton(
+                        onClick = {
+                            showCompleteDialog = false
+                            viewModel.cancelFlight()
+                            onFlightComplete()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = WarningLight),
+                        border = BorderStroke(1.dp, WarningLight)
+                    ) {
+                        Icon(Icons.Default.Cancel, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Abort Flight")
+                    }
+                    // Delete flight entirely
+                    OutlinedButton(
+                        onClick = {
+                            showCompleteDialog = false
+                            viewModel.deleteFlight()
+                            onFlightComplete()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
+                        border = BorderStroke(1.dp, Error)
+                    ) {
+                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Delete Flight")
+                    }
                 }
             },
+            confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showCompleteDialog = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("Back", color = TextSecondary)
                 }
             }
         )

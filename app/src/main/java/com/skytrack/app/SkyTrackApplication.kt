@@ -42,5 +42,9 @@ class SkyTrackApplication : Application() {
         applicationScope.launch {
             airportRepository.seedDatabaseIfEmpty()
         }
+
+        // Set global metric preference
+        val prefs = getSharedPreferences("skytrack_prefs", MODE_PRIVATE)
+        com.skytrack.app.data.model.FlightProgress.useMetric = prefs.getBoolean("use_metric", true)
     }
 }

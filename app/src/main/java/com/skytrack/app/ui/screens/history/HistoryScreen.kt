@@ -43,15 +43,7 @@ fun HistoryScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         },
-        containerColor = DarkBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNewFlight,
-                containerColor = Amber
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "New Flight", tint = DarkBackground)
-            }
-        }
+        containerColor = DarkBackground
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize().padding(paddingValues), Alignment.Center) {
@@ -219,9 +211,6 @@ private fun FlightHistoryCard(
                             color = TextPrimary, fontWeight = FontWeight.Bold
                         )
                     )
-                    if (flight.flightNumber.isNotBlank()) {
-                        Text(flight.flightNumber, style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary))
-                    }
                     Text(
                         buildString {
                             if (flight.totalDistanceKm > 0) append("${flight.totalDistanceKm.roundToInt()} km  ·  ")

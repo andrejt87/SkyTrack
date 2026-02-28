@@ -60,19 +60,32 @@ data class FlightProgress(
             return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
         }
 
-    /** Altitude formatted as "FL350" or "12,500 ft" */
-    val altitudeFormatted: String
-        get() {
+    /** Altitude formatted — respects metric preference */
+    fun altitudeFormatted(metric: Boolean = useMetric): String {
+        return if (metric) {
+            "${"%,d".format(altitudeM.toInt())} m"
+        } else {
             val ft = (altitudeM * 3.28084).toInt()
-            return if (ft >= 10000) {
-                val fl = ft / 100
-                "FL$fl"
-            } else {
-                "${"%,d".format(ft)} ft"
-            }
+            if (ft >= 10000) "FL${ft / 100}" else "${"%,d".format(ft)} ft"
         }
+    }
 
-    /** Speed formatted as "850 km/h" */
+    /** For backwards compat — uses global setting */
+    val altitudeFormatted: String
+        get() = altitudeFormatted(useMetric)
+
+    /** Speed formatted — respects metric preference */
+    fun speedFormatted(metric: Boolean = useMetric): String {
+        return if (metric) "${groundSpeedKmh.toInt()} km/h"
+        else "${(groundSpeedKmh * 0.539957).toInt()} kts"
+    }
+
+    /** For backwards compat */
     val speedFormatted: String
-        get() = "${groundSpeedKmh.toInt()} km/h"
+        get() = speedFormatted(useMetric)
+
+    companion object {
+        /** Global metric preference — set from Application/Activity */
+        var useMetric: Boolean = true
+    }
 }

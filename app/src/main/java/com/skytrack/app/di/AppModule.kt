@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder
 import com.skytrack.app.data.db.AppDatabase
 import com.skytrack.app.data.db.AirportDao
 import com.skytrack.app.data.db.FlightDao
+import com.skytrack.app.data.db.TrackPointDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +39,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFlightDao(db: AppDatabase): FlightDao = db.flightDao()
+
+    @Provides
+    @Singleton
+    fun provideTrackPointDao(db: AppDatabase): TrackPointDao = db.trackPointDao()
 
     @Provides
     @Singleton

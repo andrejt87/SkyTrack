@@ -46,16 +46,7 @@ fun ProgressHero(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Route label
-        Text(
-            text = "$departureIata  →  $arrivalIata",
-            style = MaterialTheme.typography.headlineSmall.copy(
-                color = TextSecondary,
-                letterSpacing = 3.sp
-            )
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Arc + plane + percentage
         Box(

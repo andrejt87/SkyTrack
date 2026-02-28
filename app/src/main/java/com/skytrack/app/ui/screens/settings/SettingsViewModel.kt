@@ -10,10 +10,7 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val useMetricUnits: Boolean  = true,
-    val showBarometer: Boolean   = true,
     val trackingIntervalSec: Int = 5,
-    val offlineMapsEnabled: Boolean = true,
-    val qnhHpa: Float = 1013.25f,
     val appVersion: String = "1.0.0"
 )
 
@@ -27,22 +24,14 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadFromPrefs(): SettingsUiState = SettingsUiState(
         useMetricUnits      = preferences.getBoolean(KEY_METRIC, true),
-        showBarometer       = preferences.getBoolean(KEY_BAROMETER, true),
-        trackingIntervalSec = preferences.getInt(KEY_INTERVAL, 5),
-        offlineMapsEnabled  = preferences.getBoolean(KEY_OFFLINE_MAPS, true),
-        qnhHpa              = preferences.getFloat(KEY_QNH, 1013.25f)
+        trackingIntervalSec = preferences.getInt(KEY_INTERVAL, 5)
     )
 
     fun toggleMetricUnits() {
         val new = !_uiState.value.useMetricUnits
         _uiState.update { it.copy(useMetricUnits = new) }
         preferences.edit().putBoolean(KEY_METRIC, new).apply()
-    }
-
-    fun toggleBarometer() {
-        val new = !_uiState.value.showBarometer
-        _uiState.update { it.copy(showBarometer = new) }
-        preferences.edit().putBoolean(KEY_BAROMETER, new).apply()
+        com.skytrack.app.data.model.FlightProgress.useMetric = new
     }
 
     fun setTrackingInterval(sec: Int) {
@@ -51,23 +40,8 @@ class SettingsViewModel @Inject constructor(
         preferences.edit().putInt(KEY_INTERVAL, clamped).apply()
     }
 
-    fun toggleOfflineMaps() {
-        val new = !_uiState.value.offlineMapsEnabled
-        _uiState.update { it.copy(offlineMapsEnabled = new) }
-        preferences.edit().putBoolean(KEY_OFFLINE_MAPS, new).apply()
-    }
-
-    fun setQnh(hpa: Float) {
-        val clamped = hpa.coerceIn(950f, 1050f)
-        _uiState.update { it.copy(qnhHpa = clamped) }
-        preferences.edit().putFloat(KEY_QNH, clamped).apply()
-    }
-
     companion object {
-        const val KEY_METRIC       = "use_metric"
-        const val KEY_BAROMETER    = "show_barometer"
-        const val KEY_INTERVAL     = "tracking_interval"
-        const val KEY_OFFLINE_MAPS = "offline_maps"
-        const val KEY_QNH          = "qnh_hpa"
+        const val KEY_METRIC   = "use_metric"
+        const val KEY_INTERVAL = "tracking_interval"
     }
 }

@@ -17,12 +17,12 @@ data class Flight(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    // Route
-    val departureIata: String,
-    val departureName: String,
-    val departureLat: Double,
-    val departureLon: Double,
-    val departureTz: String,
+    // Route (departure is optional — user may start tracking mid-flight)
+    val departureIata: String = "",
+    val departureName: String = "",
+    val departureLat: Double = 0.0,
+    val departureLon: Double = 0.0,
+    val departureTz: String = "",
 
     val arrivalIata: String,
     val arrivalName: String,
@@ -31,7 +31,6 @@ data class Flight(
     val arrivalTz: String,
 
     // Flight details
-    val flightNumber: String = "",
     val airline: String = "",
 
     // Timing
@@ -49,17 +48,17 @@ data class Flight(
     val maxSpeedKmh: Double = 0.0,
     val avgSpeedKmh: Double = 0.0,
 
-    // Tracking path (JSON-encoded list of lat/lon pairs)
-    val trackPointsJson: String = "[]",
-
     // Created
     val createdAtMs: Long = System.currentTimeMillis()
 ) {
     val isActive: Boolean
         get() = status == FlightStatus.AIRBORNE || status == FlightStatus.DESCENDING
 
+    val hasDeparture: Boolean
+        get() = departureIata.isNotBlank()
+
     val routeLabel: String
-        get() = "$departureIata → $arrivalIata"
+        get() = if (hasDeparture) "$departureIata → $arrivalIata" else "→ $arrivalIata"
 
     val durationMs: Long
         get() = if (actualArrivalMs > 0 && actualDepartureMs > 0)

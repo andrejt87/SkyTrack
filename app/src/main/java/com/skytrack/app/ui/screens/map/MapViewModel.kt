@@ -27,18 +27,23 @@ class MapViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val flightId: Long = checkNotNull(savedStateHandle["flightId"])
+    private val flightId: Long = savedStateHandle["flightId"] ?: -1L
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            flightRepository.getFlightById(flightId).collect { flight ->
-                _uiState.update { it.copy(flight = flight) }
-                if (flight != null && !_uiState.value.isTracking) {
-                    startTracking(flight)
+        if (flightId > 0) {
+            viewModelScope.launch {
+                flightRepository.getFlightById(flightId).collect { flight ->
+                    _uiState.update { it.copy(flight = flight) }
+                    if (flight != null && !_uiState.value.isTracking) {
+                        startTracking(flight)
+                    }
                 }
             }
+        } else {
+            // No flight — just show current position
+            startLocationOnly()
         }
     }
 
@@ -52,6 +57,23 @@ class MapViewModel @Inject constructor(
                 arrivalLon   = flight.arrivalLon
             ).collect { progress ->
                 _uiState.update { it.copy(progress = progress) }
+            }
+        }
+    }
+
+    private fun startLocationOnly() {
+        _uiState.update { it.copy(isTracking = true) }
+        viewModelScope.launch {
+            locationRepository.locationUpdates.collect { loc ->
+                _uiState.update { it.copy(
+                    progress = it.progress.copy(
+                        currentLat = loc.lat,
+                        currentLon = loc.lon,
+                        altitudeM = loc.altitudeM,
+                        groundSpeedKmh = loc.speedKmh,
+                        gpsAccuracyM = loc.accuracyM
+                    )
+                )}
             }
         }
     }

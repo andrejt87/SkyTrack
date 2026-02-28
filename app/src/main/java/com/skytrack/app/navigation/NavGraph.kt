@@ -6,11 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.*
 import androidx.navigation.compose.*
-import com.skytrack.app.ui.screens.dashboard.DashboardScreen
+import com.skytrack.app.ui.screens.home.HomeScreen
 import com.skytrack.app.ui.screens.history.HistoryScreen
 import com.skytrack.app.ui.screens.map.MapScreen
 import com.skytrack.app.ui.screens.settings.SettingsScreen
-import com.skytrack.app.ui.screens.setup.FlightSetupScreen
 import com.skytrack.app.ui.screens.splash.SplashScreen
 import com.skytrack.app.ui.screens.stats.StatsScreen
 import com.skytrack.app.ui.airportpicker.AirportPickerScreen
@@ -19,12 +18,13 @@ import com.skytrack.app.data.model.Airport
 
 sealed class Screen(val route: String) {
     object Splash   : Screen("splash")
-    object Setup    : Screen("setup")
+    object Home     : Screen("home")
+    object Setup    : Screen("setup") // kept for compat, redirects to Home
     object Dashboard: Screen("dashboard/{flightId}") {
         fun createRoute(flightId: Long) = "dashboard/$flightId"
     }
     object Map      : Screen("map/{flightId}") {
-        fun createRoute(flightId: Long) = "map/$flightId"
+        fun createRoute(flightId: Long = -1L) = "map/$flightId"
     }
     object Stats    : Screen("stats/{flightId}") {
         fun createRoute(flightId: Long) = "stats/$flightId"
@@ -35,6 +35,7 @@ sealed class Screen(val route: String) {
         fun createRoute(type: String) = "airport_picker/$type"
         const val TYPE_DEPARTURE = "departure"
         const val TYPE_ARRIVAL   = "arrival"
+        const val TYPE_DEPARTURE_ACTIVE = "departure_active"
     }
 }
 
@@ -51,75 +52,53 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Splash.route) {
             SplashScreen(
                 onSplashComplete = {
-                    navController.navigate(Screen.Setup.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 },
-                onActiveFlight = { flightId ->
-                    navController.navigate(Screen.Dashboard.createRoute(flightId)) {
+                onActiveFlight = { _ ->
+                    // Always go to Home — it auto-detects active flight
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Screen.Setup.route) { backStackEntry ->
-            // Observe airport picker results
-            val savedStateHandle = backStackEntry.savedStateHandle
-            val setupViewModel: com.skytrack.app.ui.screens.setup.FlightSetupViewModel = androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
+        composable(Screen.Home.route) { backStackEntry ->
+            val homeViewModel: com.skytrack.app.ui.screens.home.HomeViewModel =
+                androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
 
+            // Listen for airport picker results
             LaunchedEffect(Unit) {
-                savedStateHandle.getStateFlow<String?>("selected_airport_json", null).collect { json ->
+                backStackEntry.savedStateHandle.getStateFlow<String?>("selected_airport_json", null).collect { json ->
                     if (json != null) {
                         val airport = Gson().fromJson(json, Airport::class.java)
-                        val type = savedStateHandle.get<String>("selected_airport_type")
-                        if (type == Screen.AirportPicker.TYPE_DEPARTURE) {
-                            setupViewModel.setDeparture(airport)
-                        } else {
-                            setupViewModel.setArrival(airport)
+                        val type = backStackEntry.savedStateHandle.get<String>("selected_airport_type")
+                        when (type) {
+                            Screen.AirportPicker.TYPE_DEPARTURE -> homeViewModel.setDeparture(airport)
+                            Screen.AirportPicker.TYPE_ARRIVAL -> homeViewModel.setArrival(airport)
+                            Screen.AirportPicker.TYPE_DEPARTURE_ACTIVE -> homeViewModel.setDepartureOnActiveFlight(airport)
                         }
-                        savedStateHandle["selected_airport_json"] = null
+                        backStackEntry.savedStateHandle["selected_airport_json"] = null
                     }
                 }
             }
 
-            FlightSetupScreen(
-                viewModel = setupViewModel,
-                onFlightStarted = { flightId ->
-                    navController.navigate(Screen.Dashboard.createRoute(flightId)) {
-                        popUpTo(Screen.Setup.route) { inclusive = false }
-                    }
-                },
+            HomeScreen(
+                viewModel = homeViewModel,
+                onMapClick = { flightId -> navController.navigate(Screen.Map.createRoute(flightId)) },
+                onStatsClick = { flightId -> navController.navigate(Screen.Stats.createRoute(flightId)) },
+                onHistoryClick = { navController.navigate(Screen.History.route) },
+                onSettingsClick = { navController.navigate(Screen.Settings.route) },
                 onSelectDeparture = {
                     navController.navigate(Screen.AirportPicker.createRoute(Screen.AirportPicker.TYPE_DEPARTURE))
                 },
                 onSelectArrival = {
                     navController.navigate(Screen.AirportPicker.createRoute(Screen.AirportPicker.TYPE_ARRIVAL))
                 },
-                onHistoryClick = {
-                    navController.navigate(Screen.History.route)
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                }
-            )
-        }
-
-        composable(
-            route = Screen.Dashboard.route,
-            arguments = listOf(navArgument("flightId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val flightId = backStackEntry.arguments?.getLong("flightId") ?: -1L
-            DashboardScreen(
-                flightId = flightId,
-                onMapClick = { navController.navigate(Screen.Map.createRoute(flightId)) },
-                onStatsClick = { navController.navigate(Screen.Stats.createRoute(flightId)) },
-                onHistoryClick = { navController.navigate(Screen.History.route) },
-                onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                onFlightComplete = {
-                    navController.navigate(Screen.Setup.route) {
-                        popUpTo(Screen.Setup.route) { inclusive = true }
-                    }
+                onAddDepartureToFlight = {
+                    navController.navigate(Screen.AirportPicker.createRoute(Screen.AirportPicker.TYPE_DEPARTURE_ACTIVE))
                 }
             )
         }
@@ -129,10 +108,7 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("flightId") { type = NavType.LongType })
         ) { backStackEntry ->
             val flightId = backStackEntry.arguments?.getLong("flightId") ?: -1L
-            MapScreen(
-                flightId = flightId,
-                onBack = { navController.popBackStack() }
-            )
+            MapScreen(flightId = flightId, onBack = { navController.popBackStack() })
         }
 
         composable(
@@ -140,30 +116,19 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("flightId") { type = NavType.LongType })
         ) { backStackEntry ->
             val flightId = backStackEntry.arguments?.getLong("flightId") ?: -1L
-            StatsScreen(
-                flightId = flightId,
-                onBack = { navController.popBackStack() }
-            )
+            StatsScreen(flightId = flightId, onBack = { navController.popBackStack() })
         }
 
         composable(Screen.History.route) {
             HistoryScreen(
-                onFlightClick = { flightId ->
-                    navController.navigate(Screen.Stats.createRoute(flightId))
-                },
+                onFlightClick = { flightId -> navController.navigate(Screen.Stats.createRoute(flightId)) },
                 onBack = { navController.popBackStack() },
-                onNewFlight = {
-                    navController.navigate(Screen.Setup.route) {
-                        popUpTo(Screen.History.route) { inclusive = true }
-                    }
-                }
+                onNewFlight = { navController.popBackStack() }
             )
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(
-                onBack = { navController.popBackStack() }
-            )
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
 
         composable(

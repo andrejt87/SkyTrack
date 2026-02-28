@@ -28,32 +28,49 @@ class LocationProvider @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val locationRequest = LocationRequest.Builder(
+    private val prefs = context.getSharedPreferences("skytrack_prefs", Context.MODE_PRIVATE)
+
+    private fun getIntervalMs(): Long = (prefs.getInt("tracking_interval", 5) * 1000L)
+
+    private fun buildLocationRequest(): LocationRequest = LocationRequest.Builder(
         Priority.PRIORITY_HIGH_ACCURACY,
-        UPDATE_INTERVAL_MS
+        getIntervalMs()
     )
-        .setMinUpdateIntervalMillis(MIN_UPDATE_INTERVAL_MS)
+        .setMinUpdateIntervalMillis((getIntervalMs() / 2).coerceAtLeast(1000L))
         .setMinUpdateDistanceMeters(MIN_DISTANCE_METERS)
         .setWaitForAccurateLocation(false)
         .build()
 
-    /** Shared hot Flow of location updates. Starts on first collector, stops when none remain. */
+    private var currentIntervalMs: Long = getIntervalMs()
+    private var activeCallback: LocationCallback? = null
+
+    /** Shared hot Flow of location updates. Restarts when interval setting changes. */
     val locationFlow: Flow<Location> = callbackFlow {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { trySend(it) }
+
+                // Check if interval changed — restart if so
+                val newInterval = getIntervalMs()
+                if (newInterval != currentIntervalMs) {
+                    currentIntervalMs = newInterval
+                    fusedClient.removeLocationUpdates(this)
+                    startUpdates(this)
+                }
             }
         }
+        activeCallback = callback
         startUpdates(callback)
-        awaitClose { fusedClient.removeLocationUpdates(callback) }
+        awaitClose {
+            fusedClient.removeLocationUpdates(callback)
+            activeCallback = null
+        }
     }.shareIn(scope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000), replay = 1)
-
-    private var activeCallback: LocationCallback? = null
 
     @SuppressLint("MissingPermission")
     private fun startUpdates(callback: LocationCallback) {
         fusedClient.requestLocationUpdates(
-            locationRequest,
+            buildLocationRequest(),
             callback,
             Looper.getMainLooper()
         )
@@ -91,8 +108,6 @@ class LocationProvider @Inject constructor(
     }
 
     companion object {
-        private const val UPDATE_INTERVAL_MS = 5_000L      // 5 seconds
-        private const val MIN_UPDATE_INTERVAL_MS = 2_000L  // 2 seconds minimum
         private const val MIN_DISTANCE_METERS = 50f         // 50 metres minimum
     }
 }

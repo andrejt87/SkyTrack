@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.skytrack.app-debug-64:/xml_file_paths.xml.flat",
+        "source": "com.skytrack.app-main-66:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.skytrack.app-debug-64:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "com.skytrack.app-main-66:/mipmap-xxxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "com.skytrack.app-debug-64:/mipmap-xxxhdpi_ic_launcher_round.xml.flat",
+        "source": "com.skytrack.app-main-66:/mipmap-xxxhdpi/ic_launcher_round.xml"
+    }
+]

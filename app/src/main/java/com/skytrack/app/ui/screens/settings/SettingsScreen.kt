@@ -50,32 +50,16 @@ fun SettingsScreen(
 
             SettingsToggleRow(
                 title    = "Metric Units",
-                subtitle = "Speed in km/h, altitude in metres",
+                subtitle = if (uiState.useMetricUnits) "Speed in km/h, altitude in metres" else "Speed in knots, altitude in feet",
                 icon     = Icons.Default.Straighten,
                 checked  = uiState.useMetricUnits,
                 onToggle = viewModel::toggleMetricUnits
-            )
-
-            SettingsToggleRow(
-                title    = "Show Barometer Data",
-                subtitle = "Use pressure sensor for altitude when available",
-                icon     = Icons.Default.Air,
-                checked  = uiState.showBarometer,
-                onToggle = viewModel::toggleBarometer
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Tracking
             SettingsSectionHeader("TRACKING")
-
-            SettingsToggleRow(
-                title    = "Offline Maps",
-                subtitle = "Cache map tiles for offline use",
-                icon     = Icons.Default.Map,
-                checked  = uiState.offlineMapsEnabled,
-                onToggle = viewModel::toggleOfflineMaps
-            )
 
             // Tracking interval slider
             Card(
@@ -111,52 +95,11 @@ fun SettingsScreen(
                         Text("2s", style = MaterialTheme.typography.labelSmall.copy(color = TextTertiary))
                         Text("30s", style = MaterialTheme.typography.labelSmall.copy(color = TextTertiary))
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Altimetry
-            SettingsSectionHeader("ALTIMETRY")
-
-            Card(
-                colors = CardDefaults.cardColors(containerColor = DarkSurface2),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(Icons.Default.Compress, null, tint = AltitudeCyan, modifier = Modifier.size(20.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("QNH Reference Pressure", style = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary))
-                            Text("${"%.2f".format(uiState.qnhHpa)} hPa", style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary))
-                        }
-                    }
-                    Slider(
-                        value = uiState.qnhHpa,
-                        onValueChange = viewModel::setQnh,
-                        valueRange = 950f..1050f,
-                        colors = SliderDefaults.colors(
-                            thumbColor = AltitudeCyan,
-                            activeTrackColor = AltitudeCyan,
-                            inactiveTrackColor = ProgressTrack
-                        )
+                    Text(
+                        text = "Lower values = smoother tracking & more detail, but higher battery usage. Higher values = longer battery life, but less precise route recording.",
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary),
+                        modifier = Modifier.padding(top = 4.dp)
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("950 hPa", style = MaterialTheme.typography.labelSmall.copy(color = TextTertiary))
-                        Text("1050 hPa", style = MaterialTheme.typography.labelSmall.copy(color = TextTertiary))
-                    }
-                    TextButton(
-                        onClick = { viewModel.setQnh(1013.25f) },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text("Reset to ISA (1013.25)", color = TextSecondary, style = MaterialTheme.typography.labelMedium)
-                    }
                 }
             }
 

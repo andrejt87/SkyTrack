@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.skytrack.app.data.model.Flight
 import com.skytrack.app.data.model.FlightProgress
 import com.skytrack.app.data.model.FlightStatus
+import com.skytrack.app.data.model.TrackPoint
 import com.skytrack.app.data.repository.FlightRepository
 import com.skytrack.app.data.repository.LocationRepository
 import com.skytrack.app.data.sensor.BarometerProvider
@@ -43,7 +44,6 @@ class DashboardViewModel @Inject constructor(
     private var maxAltitude = 0.0
     private var maxSpeed    = 0.0
     private var speedSamples = mutableListOf<Double>()
-    private val trackPoints  = mutableListOf<Pair<Double, Double>>()
 
     init {
         loadFlight()
@@ -88,7 +88,20 @@ class DashboardViewModel @Inject constructor(
                 if (progress.altitudeM > maxAltitude) maxAltitude = progress.altitudeM
                 if (progress.groundSpeedKmh > maxSpeed) maxSpeed = progress.groundSpeedKmh
                 if (progress.groundSpeedKmh > 0) speedSamples.add(progress.groundSpeedKmh)
-                trackPoints.add(Pair(progress.currentLat, progress.currentLon))
+
+                // Persist track point immediately to DB
+                flightRepository.insertTrackPoint(
+                    TrackPoint(
+                        flightId = flightId,
+                        lat = progress.currentLat,
+                        lon = progress.currentLon,
+                        altitudeM = progress.altitudeM,
+                        speedKmh = progress.groundSpeedKmh,
+                        heading = progress.bearingDeg.toFloat(),
+                        accuracy = progress.gpsAccuracyM,
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
 
                 val elapsed = flightRepository.getFlightById(flightId).first()
                     ?.actualDepartureMs?.let { System.currentTimeMillis() - it } ?: 0L
@@ -101,14 +114,12 @@ class DashboardViewModel @Inject constructor(
     fun completeFlight(onComplete: () -> Unit) {
         viewModelScope.launch {
             val avgSpeed = if (speedSamples.isNotEmpty()) speedSamples.average() else 0.0
-            val trackJson = buildTrackJson(trackPoints)
             flightRepository.completeFlight(
                 flightId      = flightId,
                 actualArrivalMs = System.currentTimeMillis(),
                 maxAltitudeM  = maxAltitude,
                 maxSpeedKmh   = maxSpeed,
-                avgSpeedKmh   = avgSpeed,
-                trackPointsJson = trackJson
+                avgSpeedKmh   = avgSpeed
             )
             locationRepository.stopTracking()
             _uiState.update { it.copy(isTracking = false) }
@@ -124,14 +135,27 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    private fun buildTrackJson(points: List<Pair<Double, Double>>): String {
-        val sb = StringBuilder("[")
-        points.forEachIndexed { index, (lat, lon) ->
-            if (index > 0) sb.append(",")
-            sb.append("{\"lat\":$lat,\"lon\":$lon}")
+    fun setDeparture(iata: String, name: String, lat: Double, lon: Double, tz: String) {
+        viewModelScope.launch {
+            val flight = flightRepository.getFlightById(flightId).first() ?: return@launch
+            flightRepository.updateFlight(
+                flight.copy(
+                    departureIata = iata,
+                    departureName = name,
+                    departureLat = lat,
+                    departureLon = lon,
+                    departureTz = tz
+                )
+            )
         }
-        sb.append("]")
-        return sb.toString()
+    }
+
+    fun deleteFlight() {
+        viewModelScope.launch {
+            locationRepository.stopTracking()
+            flightRepository.deleteFlightById(flightId)
+            _uiState.update { it.copy(isTracking = false) }
+        }
     }
 
     override fun onCleared() {

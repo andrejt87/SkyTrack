@@ -1,15 +1,18 @@
 package com.skytrack.app.data.repository
 
 import com.skytrack.app.data.db.FlightDao
+import com.skytrack.app.data.db.TrackPointDao
 import com.skytrack.app.data.model.Flight
 import com.skytrack.app.data.model.FlightStatus
+import com.skytrack.app.data.model.TrackPoint
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class FlightRepository @Inject constructor(
-    private val flightDao: FlightDao
+    private val flightDao: FlightDao,
+    private val trackPointDao: TrackPointDao
 ) {
     fun getAllFlights(): Flow<List<Flight>> = flightDao.getAllFlights()
 
@@ -37,13 +40,21 @@ class FlightRepository @Inject constructor(
 
     suspend fun getPersonalSpeedRecord(): Double = flightDao.getPersonalSpeedRecord() ?: 0.0
 
-    /**
-     * Transitions a flight to a new status and persists immediately.
-     */
     suspend fun updateFlightStatus(flightId: Long, newStatus: FlightStatus) {
         val flight = flightDao.getFlightByIdOnce(flightId) ?: return
         flightDao.update(flight.copy(status = newStatus))
     }
+
+    // ─── TrackPoint operations ────────────────────────────────────────────
+
+    suspend fun insertTrackPoint(trackPoint: TrackPoint) =
+        trackPointDao.insert(trackPoint)
+
+    fun getTrackPointsForFlight(flightId: Long): Flow<List<TrackPoint>> =
+        trackPointDao.getTrackPointsForFlight(flightId)
+
+    suspend fun getTrackPointsForFlightOnce(flightId: Long): List<TrackPoint> =
+        trackPointDao.getTrackPointsForFlightOnce(flightId)
 
     /**
      * Marks the flight as completed, records actual arrival time, and computes stats.
@@ -53,8 +64,7 @@ class FlightRepository @Inject constructor(
         actualArrivalMs: Long,
         maxAltitudeM: Double,
         maxSpeedKmh: Double,
-        avgSpeedKmh: Double,
-        trackPointsJson: String
+        avgSpeedKmh: Double
     ) {
         val flight = flightDao.getFlightByIdOnce(flightId) ?: return
         flightDao.update(
@@ -63,8 +73,7 @@ class FlightRepository @Inject constructor(
                 actualArrivalMs = actualArrivalMs,
                 maxAltitudeM = maxAltitudeM,
                 maxSpeedKmh = maxSpeedKmh,
-                avgSpeedKmh = avgSpeedKmh,
-                trackPointsJson = trackPointsJson
+                avgSpeedKmh = avgSpeedKmh
             )
         )
     }
