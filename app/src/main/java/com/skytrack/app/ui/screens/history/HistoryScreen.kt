@@ -26,6 +26,7 @@ fun HistoryScreen(
     onFlightClick: (Long) -> Unit,
     onBack: () -> Unit,
     onNewFlight: () -> Unit = {},
+    gpsAccuracyM: Float = 0f,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -34,12 +35,7 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Flight History", color = TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = TextSecondary)
-                    }
-                },
+                title = { Text("History", color = TextPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         },

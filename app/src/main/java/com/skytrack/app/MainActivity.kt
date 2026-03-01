@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.skytrack.app.data.repository.LocationRepository
 import com.skytrack.app.navigation.NavGraph
 import com.skytrack.app.ui.theme.DarkBackground
 import com.skytrack.app.ui.theme.SkyTrackTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var locationRepository: LocationRepository
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -43,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     color = DarkBackground
                 ) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    NavGraph(navController = navController, locationRepository = locationRepository)
                 }
             }
         }

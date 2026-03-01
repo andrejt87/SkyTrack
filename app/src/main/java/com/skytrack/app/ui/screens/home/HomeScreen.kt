@@ -34,6 +34,7 @@ fun HomeScreen(
     onSelectDeparture: () -> Unit,
     onSelectArrival: () -> Unit,
     onAddDepartureToFlight: () -> Unit,
+    gpsAccuracyM: Float = 0f,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,48 +50,13 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar(containerColor = DarkSurface) {
-                val flightId = uiState.activeFlight?.id
-                NavigationBarItem(
-                    selected = true, onClick = { },
-                    icon = { Icon(Icons.Default.Dashboard, null) },
-                    label = { Text("Live") },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = Amber, selectedTextColor = Amber, indicatorColor = DarkSurface2)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { onMapClick(flightId ?: -1L) },
-                    icon = { Icon(Icons.Default.Map, null) },
-                    label = { Text("Map") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary, indicatorColor = DarkSurface2)
-                )
-                NavigationBarItem(
-                    selected = false, onClick = onHistoryClick,
-                    icon = { Icon(Icons.Default.History, null) },
-                    label = { Text("History") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary, indicatorColor = DarkSurface2)
-                )
-                NavigationBarItem(
-                    selected = false, onClick = onSettingsClick,
-                    icon = { Icon(Icons.Default.Settings, null) },
-                    label = { Text("Settings") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary, indicatorColor = DarkSurface2)
-                )
-            }
-        },
-        topBar = {},
-        containerColor = DarkBackground
-    ) { paddingValues ->
-        val flight = uiState.activeFlight
-        val progress = uiState.progress
-        val hasData = uiState.hasActiveFlight
+    val flight = uiState.activeFlight
+    val progress = uiState.progress
+    val hasData = uiState.hasActiveFlight
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -263,7 +229,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }
 
     // End flight dialog
     if (showCompleteDialog) {

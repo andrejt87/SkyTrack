@@ -3,7 +3,6 @@ package com.skytrack.app.ui.screens.map
 import android.graphics.Paint
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.skytrack.app.ui.components.SkyTrackTopBar
 import com.skytrack.app.domain.FlightCalculator
 import com.skytrack.app.ui.theme.*
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -27,7 +27,7 @@ import com.skytrack.app.data.map.OfflineTileProvider
 @Composable
 fun MapScreen(
     flightId: Long,
-    onBack: () -> Unit,
+    gpsAccuracyM: Float = 0f,
     viewModel: MapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,33 +37,12 @@ fun MapScreen(
 
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
     var isFollowingPlane by remember { mutableStateOf(true) }
+    var initialCentered by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = flight?.routeLabel ?: "Current Location",
-                        color = TextPrimary
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = TextSecondary)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        isFollowingPlane = true
-                        if (progress.currentLat != 0.0) {
-                            mapViewRef?.controller?.animateTo(
-                                GeoPoint(progress.currentLat, progress.currentLon)
-                            )
-                        }
-                    }) {
-                        Icon(Icons.Default.MyLocation, "Center", tint = if (isFollowingPlane) Amber else TextSecondary)
-                    }
-                },
+                title = { Text("Map", color = TextPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         },
@@ -80,13 +59,19 @@ fun MapScreen(
                 factory = { ctx ->
                     MapView(ctx).also { mv ->
                         mapViewRef = mv
-                        // Configure offline MBTiles provider; falls back gracefully
                         OfflineTileProvider.configureMap(mv, ctx)
                         mv.setMultiTouchControls(true)
                         val rotGesture = RotationGestureOverlay(mv)
                         rotGesture.isEnabled = true
                         mv.overlays.add(rotGesture)
-                        mv.controller.setZoom(5.0)
+                        // Start centered on current position (no animation)
+                        if (progress.currentLat != 0.0) {
+                            mv.controller.setCenter(GeoPoint(progress.currentLat, progress.currentLon))
+                            mv.controller.setZoom(12.0)
+                            initialCentered = true
+                        } else {
+                            mv.controller.setZoom(5.0)
+                        }
                     }
                 },
                 update = { mapView ->
@@ -96,14 +81,18 @@ fun MapScreen(
                     // No flight — just show current position
                     if (flight == null) {
                         if (progress.currentLat != 0.0) {
+                            val curPos = GeoPoint(progress.currentLat, progress.currentLon)
                             val curMarker = Marker(mapView).apply {
-                                position = GeoPoint(progress.currentLat, progress.currentLon)
+                                position = curPos
                                 title = "Current Position"
                                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             }
                             mapView.overlays.add(curMarker)
-                            mapView.controller.animateTo(GeoPoint(progress.currentLat, progress.currentLon))
-                            mapView.controller.setZoom(12.0)
+                            if (!initialCentered) {
+                                mapView.controller.setCenter(curPos)
+                                mapView.controller.setZoom(12.0)
+                                initialCentered = true
+                            }
                         }
                         mapView.invalidate()
                         return@AndroidView
@@ -201,6 +190,25 @@ fun MapScreen(
                     mapView.invalidate()
                 }
             )
+
+            // My Location button
+            FloatingActionButton(
+                onClick = {
+                    isFollowingPlane = true
+                    if (progress.currentLat != 0.0) {
+                        mapViewRef?.controller?.animateTo(
+                            GeoPoint(progress.currentLat, progress.currentLon)
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = DarkSurface,
+                contentColor = if (isFollowingPlane) Amber else TextSecondary
+            ) {
+                Icon(Icons.Default.MyLocation, "Center")
+            }
 
             // Speed/altitude overlay card
             if (progress.currentLat != 0.0) {

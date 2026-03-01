@@ -3,6 +3,9 @@ package com.skytrack.app.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -21,6 +24,7 @@ fun CurrentPositionMap(
     val ctx = LocalContext.current
     val isOnline by NetworkMonitor.isOnline.collectAsState()
     val hasPosition = lat != 0.0 || lon != 0.0
+    var initialCentered by remember { mutableStateOf(false) }
 
     AndroidView(
         modifier = modifier,
@@ -30,9 +34,14 @@ fun CurrentPositionMap(
                 setMultiTouchControls(false)
                 isClickable = false
                 isFocusable = false
-                // Default view: world overview
-                controller.setCenter(GeoPoint(50.0, 10.0))
-                controller.setZoom(3.0)
+                if (hasPosition) {
+                    controller.setCenter(GeoPoint(lat, lon))
+                    controller.setZoom(13.0)
+                    initialCentered = true
+                } else {
+                    controller.setCenter(GeoPoint(50.0, 10.0))
+                    controller.setZoom(3.0)
+                }
             }
         },
         update = { mapView ->
@@ -47,8 +56,12 @@ fun CurrentPositionMap(
                     title = "Current Position"
                 }
                 mapView.overlays.add(marker)
-                mapView.controller.setCenter(pos)
-                mapView.controller.setZoom(13.0)
+                // Only center once (first GPS fix), then let user pan freely
+                if (!initialCentered) {
+                    mapView.controller.setCenter(pos)
+                    mapView.controller.setZoom(13.0)
+                    initialCentered = true
+                }
             }
             mapView.invalidate()
         }

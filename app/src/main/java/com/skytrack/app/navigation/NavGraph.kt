@@ -2,10 +2,18 @@ package com.skytrack.app.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.map
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.navigation.*
 import androidx.navigation.compose.*
+import com.skytrack.app.ui.components.NavTab
+import com.skytrack.app.ui.components.SkyTrackBottomBar
+import com.skytrack.app.ui.theme.DarkBackground
 import com.skytrack.app.ui.screens.home.HomeScreen
 import com.skytrack.app.ui.screens.history.HistoryScreen
 import com.skytrack.app.ui.screens.map.MapScreen
@@ -15,6 +23,7 @@ import com.skytrack.app.ui.screens.stats.StatsScreen
 import com.skytrack.app.ui.airportpicker.AirportPickerScreen
 import com.google.gson.Gson
 import com.skytrack.app.data.model.Airport
+import com.skytrack.app.data.repository.LocationRepository
 
 sealed class Screen(val route: String) {
     object Splash   : Screen("splash")
@@ -40,8 +49,48 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController, locationRepository: LocationRepository) {
+    val gpsAccuracy by locationRepository.locationUpdates
+        .map { it.accuracyM }
+        .collectAsState(initial = 0f)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Screens where bottom bar should be hidden
+    val hideBottomBar = currentRoute == Screen.Splash.route ||
+                        currentRoute == Screen.AirportPicker.route
+
+    Scaffold(
+        bottomBar = {
+            if (!hideBottomBar) {
+                SkyTrackBottomBar(
+                    selected = when {
+                        currentRoute == Screen.Home.route -> NavTab.Live
+                        currentRoute?.startsWith("map/") == true -> NavTab.Map
+                        currentRoute == Screen.History.route -> NavTab.History
+                        currentRoute == Screen.Settings.route -> NavTab.Settings
+                        else -> NavTab.Live
+                    },
+                    onTabSelected = { tab ->
+                        val route = when (tab) {
+                            NavTab.Live -> Screen.Home.route
+                            NavTab.Map -> Screen.Map.createRoute(-1L)
+                            NavTab.History -> Screen.History.route
+                            NavTab.Settings -> Screen.Settings.route
+                        }
+                        navController.navigate(route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        },
+        containerColor = DarkBackground
+    ) { innerPadding ->
     NavHost(
+        modifier = Modifier.padding(innerPadding),
         navController = navController,
         startDestination = Screen.Splash.route,
         enterTransition = { fadeIn(tween(300)) + slideInHorizontally(tween(300)) { it / 4 } },
@@ -87,6 +136,7 @@ fun NavGraph(navController: NavHostController) {
 
             HomeScreen(
                 viewModel = homeViewModel,
+                gpsAccuracyM = gpsAccuracy,
                 onMapClick = { flightId -> navController.navigate(Screen.Map.createRoute(flightId)) },
                 onStatsClick = { flightId -> navController.navigate(Screen.Stats.createRoute(flightId)) },
                 onHistoryClick = { navController.navigate(Screen.History.route) },
@@ -108,7 +158,7 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("flightId") { type = NavType.LongType })
         ) { backStackEntry ->
             val flightId = backStackEntry.arguments?.getLong("flightId") ?: -1L
-            MapScreen(flightId = flightId, onBack = { navController.popBackStack() })
+            MapScreen(flightId = flightId, gpsAccuracyM = gpsAccuracy)
         }
 
         composable(
@@ -123,12 +173,13 @@ fun NavGraph(navController: NavHostController) {
             HistoryScreen(
                 onFlightClick = { flightId -> navController.navigate(Screen.Stats.createRoute(flightId)) },
                 onBack = { navController.popBackStack() },
-                onNewFlight = { navController.popBackStack() }
+                onNewFlight = { navController.popBackStack() },
+                gpsAccuracyM = gpsAccuracy
             )
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(onBack = { navController.popBackStack() }, gpsAccuracyM = gpsAccuracy)
         }
 
         composable(
@@ -148,4 +199,5 @@ fun NavGraph(navController: NavHostController) {
             )
         }
     }
+    } // Scaffold
 }
