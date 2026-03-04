@@ -33,11 +33,16 @@ fun MapScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val flight   = uiState.flight
     val progress = uiState.progress
+    val trackPoints = uiState.trackPoints
     val isOnline by NetworkMonitor.isOnline.collectAsState()
 
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
     var isFollowingPlane by remember { mutableStateOf(true) }
     var initialCentered by remember { mutableStateOf(false) }
+    var lastCurrentLat by remember { mutableStateOf(Double.NaN) }
+    var lastCurrentLon by remember { mutableStateOf(Double.NaN) }
+    var lastTrackSize by remember { mutableIntStateOf(0) }
+    var lastFlightId by remember { mutableStateOf(-2L) }
 
     Scaffold(
         topBar = {
@@ -76,6 +81,18 @@ fun MapScreen(
                 },
                 update = { mapView ->
                     OfflineTileProvider.configureMap(mapView, mapView.context)
+
+                    // Only update when position, track data, or flight changed
+                    val currentFlightId = flight?.id ?: -1L
+                    if (progress.currentLat == lastCurrentLat &&
+                        progress.currentLon == lastCurrentLon &&
+                        trackPoints.size == lastTrackSize &&
+                        currentFlightId == lastFlightId) return@AndroidView
+                    lastCurrentLat = progress.currentLat
+                    lastCurrentLon = progress.currentLon
+                    lastTrackSize = trackPoints.size
+                    lastFlightId = currentFlightId
+
                     mapView.overlays.clear()
 
                     // No flight — just show current position
@@ -117,24 +134,39 @@ fun MapScreen(
                     }
                     mapView.overlays.add(routePolyline)
 
-                    // Covered path (solid)
-                    if (progress.currentLat != 0.0) {
-                        val coveredPoints = FlightCalculator.greatCirclePoints(
-                            flight.departureLat, flight.departureLon,
-                            progress.currentLat, progress.currentLon,
-                            numPoints = 50
-                        ).map { (lat, lon) -> GeoPoint(lat, lon) }
-
-                        val coveredPolyline = Polyline(mapView).apply {
-                            setPoints(coveredPoints)
+                    // Actual track points path (red, solid)
+                    if (trackPoints.size >= 2) {
+                        val trackGeoPoints = trackPoints.map { GeoPoint(it.lat, it.lon) }
+                        val trackPolyline = Polyline(mapView).apply {
+                            setPoints(trackGeoPoints)
                             outlinePaint.apply {
-                                color = android.graphics.Color.parseColor("#FFA000")
+                                color = android.graphics.Color.parseColor("#FF3B30")
                                 strokeWidth = 4f
                                 isAntiAlias = true
-                                alpha = 220
+                                alpha = 230
                             }
                         }
-                        mapView.overlays.add(coveredPolyline)
+                        mapView.overlays.add(trackPolyline)
+
+                        // Waypoint markers (1km minimum distance between each)
+                        var lastWpLat = trackPoints.first().lat
+                        var lastWpLon = trackPoints.first().lon
+                        for (i in trackPoints.indices) {
+                            val tp = trackPoints[i]
+                            val dist = if (i == 0) Double.MAX_VALUE
+                                else FlightCalculator.haversineDistance(lastWpLat, lastWpLon, tp.lat, tp.lon)
+                            if (dist >= 1.0) {
+                                val wpMarker = Marker(mapView).apply {
+                                    position = GeoPoint(tp.lat, tp.lon)
+                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                    title = "WP${i + 1} · ${tp.altitudeM.toInt()}m · ${tp.speedKmh.toInt()} km/h"
+                                    icon = mapView.context.getDrawable(android.R.drawable.presence_online)
+                                }
+                                mapView.overlays.add(wpMarker)
+                                lastWpLat = tp.lat
+                                lastWpLon = tp.lon
+                            }
+                        }
                     }
 
                     // Departure marker (hide when current position is nearby to avoid double pin)
@@ -146,16 +178,18 @@ fun MapScreen(
                     if (!depNearCurrent && flight.hasDeparture) {
                         val depMarker = Marker(mapView).apply {
                             position = GeoPoint(flight.departureLat, flight.departureLon)
-                            title    = "${flight.departureIata} – ${flight.departureName}"
+                            title    = "🛫 ${flight.departureIata}"
+                            snippet  = flight.departureName
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         }
                         mapView.overlays.add(depMarker)
                     }
 
-                    // Arrival marker
+                    // Arrival marker (destination airport) — always visible
                     val arrMarker = Marker(mapView).apply {
                         position = GeoPoint(flight.arrivalLat, flight.arrivalLon)
-                        title    = "${flight.arrivalIata} – ${flight.arrivalName}"
+                        title    = "🛬 ${flight.arrivalIata}"
+                        snippet  = flight.arrivalName
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     }
                     mapView.overlays.add(arrMarker)

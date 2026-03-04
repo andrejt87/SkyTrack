@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.tasks.await
+import com.skytrack.app.ui.screens.debug.DebugLog
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,7 +49,10 @@ class LocationProvider @Inject constructor(
     val locationFlow: Flow<Location> = callbackFlow {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { trySend(it) }
+                result.lastLocation?.let {
+                    DebugLog.gps("LocationProvider", "FusedClient update: lat=${it.latitude} lon=${it.longitude} acc=${it.accuracy}m provider=${it.provider}")
+                    trySend(it)
+                }
 
                 // Check if interval changed — restart if so
                 val newInterval = getIntervalMs()
@@ -58,8 +62,13 @@ class LocationProvider @Inject constructor(
                     startUpdates(this)
                 }
             }
+
+            override fun onLocationAvailability(availability: LocationAvailability) {
+                DebugLog.gps("LocationProvider", "LocationAvailability: ${availability.isLocationAvailable}")
+            }
         }
         activeCallback = callback
+        DebugLog.info("LocationProvider", "Starting FusedClient updates (interval=${currentIntervalMs}ms, minDist=${MIN_DISTANCE_METERS}m)")
         startUpdates(callback)
         awaitClose {
             fusedClient.removeLocationUpdates(callback)
@@ -78,11 +87,27 @@ class LocationProvider @Inject constructor(
 
     fun startTracking() {
         // Tracking starts automatically when locationFlow is collected
+        // If callback was killed by stopTracking, restart it
+        activeCallback?.let {
+            DebugLog.info("LocationProvider", "startTracking: callback alive, re-requesting updates")
+            startUpdates(it)
+        } ?: DebugLog.warn("LocationProvider", "startTracking: no active callback (flow not collected?)")
     }
 
     fun stopTracking() {
-        activeCallback?.let { fusedClient.removeLocationUpdates(it) }
-        activeCallback = null
+        // DON'T remove the callback — this kills the shared flow permanently
+        // Just log for now; the flow lifecycle is managed by shareIn
+        DebugLog.info("LocationProvider", "stopTracking called (no-op, flow manages lifecycle)")
+    }
+
+    /** Force restart location updates — used by watchdog when GPS is stale */
+    @SuppressLint("MissingPermission")
+    fun forceRestart() {
+        activeCallback?.let { cb ->
+            DebugLog.warn("LocationProvider", "forceRestart: removing and re-adding callback")
+            fusedClient.removeLocationUpdates(cb)
+            startUpdates(cb)
+        } ?: DebugLog.error("LocationProvider", "forceRestart: no active callback!")
     }
 
     @SuppressLint("MissingPermission")
@@ -108,6 +133,6 @@ class LocationProvider @Inject constructor(
     }
 
     companion object {
-        private const val MIN_DISTANCE_METERS = 50f         // 50 metres minimum
+        private const val MIN_DISTANCE_METERS = 0f           // No minimum distance filter
     }
 }

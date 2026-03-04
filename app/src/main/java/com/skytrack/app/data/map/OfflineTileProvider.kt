@@ -14,6 +14,7 @@ import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
 import org.osmdroid.views.MapView
 import java.io.File
 import java.io.FileOutputStream
+import java.util.WeakHashMap
 
 /**
  * Map tile strategy:
@@ -35,11 +36,16 @@ object OfflineTileProvider {
         "SkyTrackOffline", 0, 12, 256, ".png", arrayOf<String>()
     )
 
+    private val configuredState = WeakHashMap<MapView, Boolean>()
+
     /**
      * Configures the MapView with the best available tile source.
+     * Only reconfigures when online/offline state actually changes per MapView.
      */
     fun configureMap(mapView: MapView, context: Context): Boolean {
         val online = NetworkMonitor.isOnline.value
+        if (configuredState[mapView] == online) return online
+        configuredState[mapView] = online
         return if (online) {
             Log.d(TAG, "Online — using MAPNIK tiles")
             mapView.setTileSource(TileSourceFactory.MAPNIK)

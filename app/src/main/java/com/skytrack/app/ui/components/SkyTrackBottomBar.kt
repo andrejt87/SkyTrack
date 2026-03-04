@@ -6,7 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import com.skytrack.app.ui.theme.*
 
-enum class NavTab { Live, Map, History, Settings }
+enum class NavTab { Live, Map, History, Settings, Debug }
 
 @Composable
 fun SkyTrackBottomBar(
@@ -52,6 +52,17 @@ fun SkyTrackBottomBar(
             onClick = { onTabSelected(NavTab.Settings) },
             icon = { Icon(Icons.Default.Settings, null) },
             label = { Text("Settings") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Amber, selectedTextColor = Amber,
+                unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary,
+                indicatorColor = DarkSurface2
+            )
+        )
+        NavigationBarItem(
+            selected = selected == NavTab.Debug,
+            onClick = { onTabSelected(NavTab.Debug) },
+            icon = { Icon(Icons.Default.BugReport, null) },
+            label = { Text("Debug") },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Amber, selectedTextColor = Amber,
                 unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary,

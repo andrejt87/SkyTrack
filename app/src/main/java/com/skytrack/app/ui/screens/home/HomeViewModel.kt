@@ -12,8 +12,15 @@ import com.skytrack.app.data.repository.LocationRepository
 import com.skytrack.app.data.sensor.BarometerProvider
 import com.skytrack.app.data.sensor.LocationProvider
 import com.skytrack.app.domain.FlightCalculator
+import android.content.Context
+import android.content.Intent
+import com.skytrack.app.service.FlightTrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.util.Log
+import com.skytrack.app.ui.screens.debug.DebugLog
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -41,6 +48,7 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val flightRepository: FlightRepository,
     private val locationProvider: LocationProvider,
     private val locationRepository: LocationRepository,
@@ -51,18 +59,30 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private var trackingJob: Job? = null
+    private var watchdogJob: Job? = null
+    private var lastGpsUpdateMs = 0L
     private var maxAltitude = 0.0
     private var maxSpeed = 0.0
     private var speedSamples = mutableListOf<Double>()
 
+    companion object {
+        private const val TAG = "HomeViewModel"
+        private const val WATCHDOG_INTERVAL_MS = 15_000L
+        private const val GPS_STALE_THRESHOLD_MS = 30_000L
+    }
+
     init {
         observeActiveFlight()
         startPassiveLocation()
+        startGpsWatchdog()
     }
 
     private fun startPassiveLocation() {
         viewModelScope.launch {
+            DebugLog.info(TAG, "Passive location collector started")
             locationRepository.locationUpdates.collect { loc ->
+                lastGpsUpdateMs = System.currentTimeMillis()
+                DebugLog.gps(TAG, "lat=${String.format("%.5f", loc.lat)} lon=${String.format("%.5f", loc.lon)} spd=${String.format("%.1f", loc.speedKmh)}km/h alt=${String.format("%.0f", loc.altitudeM)}m acc=${String.format("%.1f", loc.accuracyM)}m")
                 // Only update if no active flight (flight tracking handles its own updates)
                 if (!_uiState.value.hasActiveFlight) {
                     _uiState.update { it.copy(
@@ -79,14 +99,35 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /** Watchdog: restarts GPS if no update received for 30s */
+    private fun startGpsWatchdog() {
+        watchdogJob = viewModelScope.launch {
+            while (true) {
+                delay(WATCHDOG_INTERVAL_MS)
+                if (lastGpsUpdateMs > 0) {
+                    val staleMs = System.currentTimeMillis() - lastGpsUpdateMs
+                    if (staleMs > GPS_STALE_THRESHOLD_MS) {
+                        Log.w(TAG, "GPS stale for ${staleMs}ms, restarting location provider")
+                        DebugLog.watchdog(TAG, "GPS stale ${staleMs}ms > ${GPS_STALE_THRESHOLD_MS}ms — force restarting provider")
+                        locationProvider.forceRestart()
+                    } else {
+                        DebugLog.watchdog(TAG, "GPS OK, last update ${staleMs}ms ago")
+                    }
+                }
+            }
+        }
+    }
+
     private fun observeActiveFlight() {
         viewModelScope.launch {
             flightRepository.getActiveFlight().collect { flight ->
                 val wasTracking = _uiState.value.hasActiveFlight
                 _uiState.update { it.copy(activeFlight = flight) }
                 if (flight != null && !wasTracking) {
+                    DebugLog.info(TAG, "Active flight detected: id=${flight.id} ${flight.departureIata}->${flight.arrivalIata}")
                     startTracking(flight)
                 } else if (flight == null && wasTracking) {
+                    DebugLog.info(TAG, "Active flight ended")
                     stopTrackingInternal()
                 }
             }
@@ -176,6 +217,16 @@ class HomeViewModel @Inject constructor(
         speedSamples.clear()
         _uiState.update { it.copy(isTracking = true, barometerAvailable = barometerProvider.isAvailable) }
 
+        // Start foreground service for background GPS
+        try {
+            val serviceIntent = Intent(appContext, FlightTrackingService::class.java).apply {
+                putExtra(FlightTrackingService.EXTRA_FLIGHT_ID, flight.id)
+            }
+            appContext.startForegroundService(serviceIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start tracking service", e)
+        }
+
         trackingJob = viewModelScope.launch {
             locationRepository.getFlightProgressFlow(
                 departureLat = flight.departureLat,
@@ -192,9 +243,12 @@ class HomeViewModel @Inject constructor(
                     pressureHpa = if (barometerProvider.isAvailable) progress.pressureHpa else 1013.25f
                 )
             }.collect { progress ->
+                lastGpsUpdateMs = System.currentTimeMillis()
                 if (progress.altitudeM > maxAltitude) maxAltitude = progress.altitudeM
                 if (progress.groundSpeedKmh > maxSpeed) maxSpeed = progress.groundSpeedKmh
                 if (progress.groundSpeedKmh > 0) speedSamples.add(progress.groundSpeedKmh)
+
+                DebugLog.track(TAG, "prog=${String.format("%.1f", progress.rawProgressPercent)}% dist=${String.format("%.1f", progress.remainingDistanceKm)}km spd=${String.format("%.1f", progress.groundSpeedKmh)}km/h alt=${String.format("%.0f", progress.altitudeM)}m")
 
                 val currentFlight = _uiState.value.activeFlight ?: return@collect
                 flightRepository.insertTrackPoint(
@@ -222,6 +276,12 @@ class HomeViewModel @Inject constructor(
     private fun stopTrackingInternal() {
         trackingJob?.cancel()
         trackingJob = null
+        // Stop foreground service
+        try {
+            appContext.stopService(Intent(appContext, FlightTrackingService::class.java))
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop tracking service", e)
+        }
         // Don't reset progress — keep last GPS values so idle UI still shows position/speed/alt
         // Don't call stopTracking — passive location collector continues
         _uiState.update { it.copy(isTracking = false, elapsedMs = 0L) }
@@ -283,5 +343,6 @@ class HomeViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         trackingJob?.cancel()
+        watchdogJob?.cancel()
     }
 }

@@ -1,5 +1,6 @@
 package com.skytrack.app.ui.components
 
+import android.view.MotionEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,15 +26,23 @@ fun CurrentPositionMap(
     val isOnline by NetworkMonitor.isOnline.collectAsState()
     val hasPosition = lat != 0.0 || lon != 0.0
     var initialCentered by remember { mutableStateOf(false) }
+    var lastLat by remember { mutableStateOf(Double.NaN) }
+    var lastLon by remember { mutableStateOf(Double.NaN) }
 
     AndroidView(
         modifier = modifier,
         factory = { context ->
             MapView(context).apply {
                 OfflineTileProvider.configureMap(this, context)
-                setMultiTouchControls(false)
-                isClickable = false
-                isFocusable = false
+                setMultiTouchControls(true)
+                // Prevent parent scroll from intercepting map gestures
+                setOnTouchListener { v, event ->
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> v.parent?.requestDisallowInterceptTouchEvent(true)
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.parent?.requestDisallowInterceptTouchEvent(false)
+                    }
+                    false
+                }
                 if (hasPosition) {
                     controller.setCenter(GeoPoint(lat, lon))
                     controller.setZoom(13.0)
@@ -46,17 +55,22 @@ fun CurrentPositionMap(
         },
         update = { mapView ->
             OfflineTileProvider.configureMap(mapView, ctx)
+
+            // Only update overlays when position actually changed
+            if (lat == lastLat && lon == lastLon) return@AndroidView
+            lastLat = lat
+            lastLon = lon
+
             mapView.overlays.clear()
 
             if (hasPosition) {
                 val pos = GeoPoint(lat, lon)
                 val marker = Marker(mapView).apply {
                     position = pos
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     title = "Current Position"
                 }
                 mapView.overlays.add(marker)
-                // Only center once (first GPS fix), then let user pan freely
                 if (!initialCentered) {
                     mapView.controller.setCenter(pos)
                     mapView.controller.setZoom(13.0)

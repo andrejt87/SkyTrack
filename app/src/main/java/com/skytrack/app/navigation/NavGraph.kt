@@ -20,6 +20,7 @@ import com.skytrack.app.ui.screens.map.MapScreen
 import com.skytrack.app.ui.screens.settings.SettingsScreen
 import com.skytrack.app.ui.screens.splash.SplashScreen
 import com.skytrack.app.ui.screens.stats.StatsScreen
+import com.skytrack.app.ui.screens.debug.DebugScreen
 import com.skytrack.app.ui.airportpicker.AirportPickerScreen
 import com.google.gson.Gson
 import com.skytrack.app.data.model.Airport
@@ -40,6 +41,7 @@ sealed class Screen(val route: String) {
     }
     object History  : Screen("history")
     object Settings : Screen("settings")
+    object Debug    : Screen("debug")
     object AirportPicker : Screen("airport_picker/{type}") {
         fun createRoute(type: String) = "airport_picker/$type"
         const val TYPE_DEPARTURE = "departure"
@@ -69,6 +71,7 @@ fun NavGraph(navController: NavHostController, locationRepository: LocationRepos
                         currentRoute?.startsWith("map/") == true -> NavTab.Map
                         currentRoute == Screen.History.route -> NavTab.History
                         currentRoute == Screen.Settings.route -> NavTab.Settings
+                        currentRoute == Screen.Debug.route -> NavTab.Debug
                         else -> NavTab.Live
                     },
                     onTabSelected = { tab ->
@@ -77,6 +80,7 @@ fun NavGraph(navController: NavHostController, locationRepository: LocationRepos
                             NavTab.Map -> Screen.Map.createRoute(-1L)
                             NavTab.History -> Screen.History.route
                             NavTab.Settings -> Screen.Settings.route
+                            NavTab.Debug -> Screen.Debug.route
                         }
                         navController.navigate(route) {
                             popUpTo(Screen.Home.route) { saveState = true }
@@ -180,6 +184,10 @@ fun NavGraph(navController: NavHostController, locationRepository: LocationRepos
 
         composable(Screen.Settings.route) {
             SettingsScreen(onBack = { navController.popBackStack() }, gpsAccuracyM = gpsAccuracy)
+        }
+
+        composable(Screen.Debug.route) {
+            DebugScreen(gpsAccuracyM = gpsAccuracy)
         }
 
         composable(
