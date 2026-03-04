@@ -72,3 +72,19 @@ val Info           = Color(0xFF5C9CE6)
 // ─── Gradients ──────────────────────────────────────────────────────────────
 val GradientStart  = Color(0xFF37352F)
 val GradientEnd    = Color(0xFF2F3437)
+
+// ─── Legacy aliases (used in screens) ───────────────────────────────────────
+val Amber          = DarkPrimary
+val AmberLight     = DarkOnPrimaryContainer
+val AmberDark      = DarkPrimaryContainer
+val DeepBlue       = DarkTertiary
+val TextPrimary    = DarkOnSurface
+val TextSecondary  = DarkOnSurfaceVariant
+val TextTertiary   = DarkOutline
+val TextOnAmber    = DarkOnPrimary
+val DarkCard       = DarkSurfaceVariant
+val DarkDivider    = DarkOutline
+val DarkSurface2   = DarkSurfaceVariant
+val DarkSurface3   = DarkOutlineVariant
+val Error          = Color(0xFFEB5757)
+val ErrorLight     = Color(0xFFFF7B72)
